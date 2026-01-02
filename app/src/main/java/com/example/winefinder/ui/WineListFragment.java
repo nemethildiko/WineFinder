@@ -2,12 +2,8 @@ package com.example.winefinder.ui;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.view.*;
+import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,8 +25,17 @@ public class WineListFragment extends Fragment {
     private RecyclerView recyclerView;
     private WineAdapter adapter;
 
-    private static final String DEFAULT_TYPE = "reds";
-    private static final int LIMIT = 30; // ✅ itt állítod a limitet
+    private final String type; // "reds", "whites", stb.
+
+    // Default: reds
+    public WineListFragment() {
+        this("reds");
+    }
+
+    // Ezzel tudjuk paraméterezni
+    public WineListFragment(String type) {
+        this.type = type;
+    }
 
     @Nullable
     @Override
@@ -46,7 +51,7 @@ public class WineListFragment extends Fragment {
         adapter = new WineAdapter();
         recyclerView.setAdapter(adapter);
 
-        fetchWines(DEFAULT_TYPE);
+        fetchWines(type);
 
         return view;
     }
@@ -62,16 +67,9 @@ public class WineListFragment extends Fragment {
 
                 if (response.isSuccessful() && response.body() != null) {
                     List<WineDto> wines = response.body();
-                    Log.d("BOR_DEBUG", "EREDTI DARAB: " + wines.size());
-
-                    // ✅ 30-as limit (csak az első 30 elem)
-                    if (wines.size() > LIMIT) {
-                        wines = wines.subList(0, LIMIT);
-                    }
-
-                    Log.d("BOR_DEBUG", "MEGJELENÍTETT DARAB: " + wines.size());
-
+                    Log.d("BOR_DEBUG", "DARAB: " + wines.size());
                     adapter.updateData(wines);
+
                 } else {
                     Log.e("BOR_DEBUG", "Nem sikeres válasz vagy üres body.");
                 }
