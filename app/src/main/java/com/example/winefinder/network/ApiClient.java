@@ -7,10 +7,16 @@ public class ApiClient {
 
     private static Retrofit retrofit;
 
+    private static final String BASE_URL = "https://api.sampleapis.com/";
+
+    private ApiClient() {
+
+    }
+
     public static Retrofit getInstance() {
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
-                    .baseUrl("https://api.sampleapis.com/") // FONTOS: ez az új API base
+                    .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }

@@ -73,7 +73,7 @@ public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder
     static class WineViewHolder extends RecyclerView.ViewHolder {
         ImageView image;
         TextView title, subtitle;
-        TextView rating; // lehet null, ha nincs a layoutban
+        TextView rating;
 
         public WineViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -81,7 +81,7 @@ public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder
             title = itemView.findViewById(R.id.wineTitle);
             subtitle = itemView.findViewById(R.id.wineSubtitle);
 
-            // ha nincs ilyen ID a layoutban, akkor null marad, és nem omlik össze
+
 
         }
     }

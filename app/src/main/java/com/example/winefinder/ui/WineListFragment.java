@@ -18,7 +18,6 @@ import com.example.winefinder.model.WineDto;
 import com.example.winefinder.network.ApiClient;
 import com.example.winefinder.network.WineApi;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -30,7 +29,6 @@ public class WineListFragment extends Fragment {
     private RecyclerView recyclerView;
     private WineAdapter adapter;
 
-    // Kezdésnek fixen "reds", később ezt cseréljük menüből/tabból
     private static final String DEFAULT_TYPE = "reds";
 
     @Nullable
@@ -44,8 +42,8 @@ public class WineListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.wineRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // üres adapterrel indulunk, hogy ne legyen "No adapter attached" figyelmeztetés
-        adapter = new WineAdapter(new ArrayList<>());
+
+        adapter = new WineAdapter();
         recyclerView.setAdapter(adapter);
 
         fetchWines(DEFAULT_TYPE);
@@ -66,9 +64,7 @@ public class WineListFragment extends Fragment {
                     List<WineDto> wines = response.body();
                     Log.d("BOR_DEBUG", "DARAB: " + wines.size());
 
-                    // Adapter frissítése
                     adapter.updateData(wines);
-
                 } else {
                     Log.e("BOR_DEBUG", "Nem sikeres válasz vagy üres body.");
                 }
@@ -76,7 +72,7 @@ public class WineListFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<WineDto>> call, Throwable t) {
-                Log.e("BOR_DEBUG", "FAIL: " + t.getMessage());
+                Log.e("BOR_DEBUG", "FAIL: " + t.getMessage(), t);
             }
         });
     }
