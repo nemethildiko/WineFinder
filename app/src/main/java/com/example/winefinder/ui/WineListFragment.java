@@ -30,6 +30,7 @@ public class WineListFragment extends Fragment {
     private WineAdapter adapter;
 
     private static final String DEFAULT_TYPE = "reds";
+    private static final int LIMIT = 30; // ✅ itt állítod a limitet
 
     @Nullable
     @Override
@@ -41,7 +42,6 @@ public class WineListFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.wineRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
 
         adapter = new WineAdapter();
         recyclerView.setAdapter(adapter);
@@ -62,7 +62,14 @@ public class WineListFragment extends Fragment {
 
                 if (response.isSuccessful() && response.body() != null) {
                     List<WineDto> wines = response.body();
-                    Log.d("BOR_DEBUG", "DARAB: " + wines.size());
+                    Log.d("BOR_DEBUG", "EREDTI DARAB: " + wines.size());
+
+                    // ✅ 30-as limit (csak az első 30 elem)
+                    if (wines.size() > LIMIT) {
+                        wines = wines.subList(0, LIMIT);
+                    }
+
+                    Log.d("BOR_DEBUG", "MEGJELENÍTETT DARAB: " + wines.size());
 
                     adapter.updateData(wines);
                 } else {
