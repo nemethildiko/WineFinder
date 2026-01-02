@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_reds"
+        android:title="Reds"
+        android:icon="@drawable/ic_red_wine" />
+
+    <item
+        android:id="@+id/nav_whites"
+        android:title="Whites"
+        android:icon="@drawable/ic_white_wine" />
+
+    <item
+        android:id="@+id/nav_favorites"
+        android:title="Favorites"
+        android:icon="@android:drawable/btn_star_big_on" />
+
+</menu>
