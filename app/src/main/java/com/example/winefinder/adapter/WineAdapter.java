@@ -82,7 +82,7 @@ public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder
             subtitle = itemView.findViewById(R.id.wineSubtitle);
 
             // ha nincs ilyen ID a layoutban, akkor null marad, és nem omlik össze
-            rating = itemView.findViewById(R.id.wineRating);
+
         }
     }
 }
