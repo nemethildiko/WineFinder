@@ -3,61 +3,86 @@ package com.example.winefinder.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.winefinder.R;
-import com.example.winefinder.model.Wine;
+import com.example.winefinder.model.WineDto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder> {
 
-    public interface OnWineClickListener {
-        void onWineClick(Wine wine);
+    private final List<WineDto> items = new ArrayList<>();
+
+    // ✅ Üres konstruktor (Fragment így tudja: new WineAdapter(new ArrayList<>()) helyett simán new WineAdapter())
+    public WineAdapter() {}
+
+    // ✅ Ha mégis listával akarod indítani:
+    public WineAdapter(List<WineDto> initial) {
+        if (initial != null) items.addAll(initial);
     }
 
-    private final List<Wine> wines;
-    private final OnWineClickListener listener;
-
-    public WineAdapter(List<Wine> wines, OnWineClickListener listener) {
-        this.wines = wines;
-        this.listener = listener;
+    // ✅ Ez passzol a Fragmenthez: adapter.updateData(adatok)
+    public void updateData(List<WineDto> newItems) {
+        items.clear();
+        if (newItems != null) items.addAll(newItems);
+        notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public WineViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_wine, parent, false);
-        return new WineViewHolder(view);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_wine, parent, false);
+        return new WineViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(@NonNull WineViewHolder holder, int position) {
-        Wine wine = wines.get(position);
+        WineDto w = items.get(position);
 
-        holder.tvName.setText(wine.getName());
-        holder.tvMeta.setText(wine.getCountry() + " • " + wine.getYear());
+        // Null-safe (nehogy "null" jelenjen meg)
+        String title = (w.getWine() != null) ? w.getWine() : "";
+        String subtitle = (w.getWinery() != null) ? w.getWinery() : "";
 
-        holder.itemView.setOnClickListener(v -> listener.onWineClick(wine));
+        holder.title.setText(title);
+        holder.subtitle.setText(subtitle);
+
+        // Ha van rating TextView (nem kötelező), akkor kitöltjük
+        if (holder.rating != null && w.getRating() != null) {
+            holder.rating.setText("⭐ " + w.getRating().getAverage() + " (" + w.getRating().getReviews() + ")");
+        }
+
+        Glide.with(holder.itemView.getContext())
+                .load(w.getImage())
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_menu_report_image)
+                .into(holder.image);
     }
 
     @Override
     public int getItemCount() {
-        return wines.size();
+        return items.size();
     }
 
     static class WineViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName;
-        TextView tvMeta;
+        ImageView image;
+        TextView title, subtitle;
+        TextView rating; // lehet null, ha nincs a layoutban
 
-        WineViewHolder(@NonNull View itemView) {
+        public WineViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvName = itemView.findViewById(R.id.tvName);
-            tvMeta = itemView.findViewById(R.id.tvMeta);
+            image = itemView.findViewById(R.id.wineImage);
+            title = itemView.findViewById(R.id.wineTitle);
+            subtitle = itemView.findViewById(R.id.wineSubtitle);
+
+            // ha nincs ilyen ID a layoutban, akkor null marad, és nem omlik össze
+            rating = itemView.findViewById(R.id.wineRating);
         }
     }
 }
