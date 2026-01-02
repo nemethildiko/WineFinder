@@ -15,10 +15,16 @@ import java.util.List;
 
 public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder> {
 
-    private final List<Wine> wines;
+    public interface OnWineClickListener {
+        void onWineClick(Wine wine);
+    }
 
-    public WineAdapter(List<Wine> wines) {
+    private final List<Wine> wines;
+    private final OnWineClickListener listener;
+
+    public WineAdapter(List<Wine> wines, OnWineClickListener listener) {
         this.wines = wines;
+        this.listener = listener;
     }
 
     @NonNull
@@ -32,8 +38,11 @@ public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder
     @Override
     public void onBindViewHolder(@NonNull WineViewHolder holder, int position) {
         Wine wine = wines.get(position);
+
         holder.tvName.setText(wine.getName());
         holder.tvMeta.setText(wine.getCountry() + " • " + wine.getYear());
+
+        holder.itemView.setOnClickListener(v -> listener.onWineClick(wine));
     }
 
     @Override

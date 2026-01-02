@@ -11,6 +11,7 @@ import com.example.winefinder.model.Wine;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.content.Intent;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,8 +31,15 @@ public class MainActivity extends AppCompatActivity {
         List<Wine> wines = createDummyWines();
 
         // 3) Adapter: adat + sor layout összekötése
-        WineAdapter adapter = new WineAdapter(wines);
+        WineAdapter adapter = new WineAdapter(wines, wine -> {
+            Intent intent = new Intent(MainActivity.this, WineDetailActivity.class);
+            intent.putExtra("name", wine.getName());
+            intent.putExtra("country", wine.getCountry());
+            intent.putExtra("year", wine.getYear());
+            startActivity(intent);
+        });
         rvWines.setAdapter(adapter);
+
     }
 
     private List<Wine> createDummyWines() {
