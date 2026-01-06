@@ -1,5 +1,6 @@
 package com.example.winefinder.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
@@ -25,17 +26,17 @@ public class WineListFragment extends Fragment {
     private RecyclerView recyclerView;
     private WineAdapter adapter;
 
-    private final String type; // "reds", "whites", stb.
+    private static final String ARG_TYPE = "wine_type";
 
-    // Default: reds
-    public WineListFragment() {
-        this("reds");
+    public static WineListFragment newInstance(String type) {
+        WineListFragment f = new WineListFragment();
+        Bundle b = new Bundle();
+        b.putString(ARG_TYPE, type);
+        f.setArguments(b);
+        return f;
     }
 
-    // Ezzel tudjuk paraméterezni
-    public WineListFragment(String type) {
-        this.type = type;
-    }
+    public WineListFragment() {}
 
     @Nullable
     @Override
@@ -51,11 +52,26 @@ public class WineListFragment extends Fragment {
         adapter = new WineAdapter();
         recyclerView.setAdapter(adapter);
 
+        // 🔥 CLICK → open details
+        adapter.setOnWineClickListener(wine -> {
+            Intent intent = new Intent(requireContext(), WineDetailActivity.class);
+
+            intent.putExtra("wine", wine.getWine());
+            intent.putExtra("winery", wine.getWinery());
+            intent.putExtra("location", wine.getLocation());
+            intent.putExtra("image", wine.getImage());
+
+            startActivity(intent);
+        });
+
+        // 🔥 Hívjuk meg a letöltést
+        String type = getArguments() != null ? getArguments().getString(ARG_TYPE, "reds") : "reds";
         fetchWines(type);
 
         return view;
     }
 
+    // ⬇⬇⬇ EZ A METÓDUS NEM LEHET AZ onCreateView BELSŐ TERÜLETÉN
     private void fetchWines(String type) {
         WineApi api = ApiClient.getInstance().create(WineApi.class);
 
@@ -66,10 +82,7 @@ public class WineListFragment extends Fragment {
                 Log.d("BOR_DEBUG", "CODE: " + response.code());
 
                 if (response.isSuccessful() && response.body() != null) {
-                    List<WineDto> wines = response.body();
-                    Log.d("BOR_DEBUG", "DARAB: " + wines.size());
-                    adapter.updateData(wines);
-
+                    adapter.updateData(response.body());
                 } else {
                     Log.e("BOR_DEBUG", "Nem sikeres válasz vagy üres body.");
                 }

@@ -20,15 +20,24 @@ public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder
 
     private final List<WineDto> items = new ArrayList<>();
 
-    // ✅ Üres konstruktor (Fragment így tudja: new WineAdapter(new ArrayList<>()) helyett simán new WineAdapter())
+    // 🔥 CLICK LISTENER interface
+    public interface OnWineClickListener {
+        void onWineClick(WineDto wine);
+    }
+
+    private OnWineClickListener listener;
+
+    public void setOnWineClickListener(OnWineClickListener listener) {
+        this.listener = listener;
+    }
+
+    // Constructors
     public WineAdapter() {}
 
-    // ✅ Ha mégis listával akarod indítani:
     public WineAdapter(List<WineDto> initial) {
         if (initial != null) items.addAll(initial);
     }
 
-    // ✅ Ez passzol a Fragmenthez: adapter.updateData(adatok)
     public void updateData(List<WineDto> newItems) {
         items.clear();
         if (newItems != null) items.addAll(newItems);
@@ -46,17 +55,13 @@ public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder
     public void onBindViewHolder(@NonNull WineViewHolder holder, int position) {
         WineDto w = items.get(position);
 
-        // Null-safe (nehogy "null" jelenjen meg)
-        String title = (w.getWine() != null) ? w.getWine() : "";
-        String subtitle = (w.getWinery() != null) ? w.getWinery() : "";
+        // 🔥 ITEM CLICK → Fragment értesítése
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onWineClick(w);
+        });
 
-        holder.title.setText(title);
-        holder.subtitle.setText(subtitle);
-
-        // Ha van rating TextView (nem kötelező), akkor kitöltjük
-        if (holder.rating != null && w.getRating() != null) {
-            holder.rating.setText("⭐ " + w.getRating().getAverage() + " (" + w.getRating().getReviews() + ")");
-        }
+        holder.title.setText(w.getWine() != null ? w.getWine() : "");
+        holder.subtitle.setText(w.getWinery() != null ? w.getWinery() : "");
 
         Glide.with(holder.itemView.getContext())
                 .load(w.getImage())
@@ -73,16 +78,12 @@ public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder
     static class WineViewHolder extends RecyclerView.ViewHolder {
         ImageView image;
         TextView title, subtitle;
-        TextView rating;
 
         public WineViewHolder(@NonNull View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.wineImage);
             title = itemView.findViewById(R.id.wineTitle);
             subtitle = itemView.findViewById(R.id.wineSubtitle);
-
-
-
         }
     }
 }
