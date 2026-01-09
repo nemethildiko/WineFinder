@@ -4,56 +4,49 @@ import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
 import com.example.winefinder.R;
+import com.example.winefinder.model.WineDto;
 
 public class WineDetailActivity extends AppCompatActivity {
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // ✅ 1. Layout betöltése ELŐSZÖR
         setContentView(R.layout.activity_wine_detail);
 
-        // ✅ 2. Toolbar beállítása
+        // Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(v -> finish());
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-
-        // ✅ 3. Nézetek
+        // View-k az XML ID-k alapján
         ImageView image = findViewById(R.id.detailImage);
         TextView title = findViewById(R.id.detailTitle);
         TextView winery = findViewById(R.id.detailWinery);
         TextView location = findViewById(R.id.detailLocation);
 
-        // ✅ 4. Intent adatok
-        String wine = getIntent().getStringExtra("wine");
-        String wineryName = getIntent().getStringExtra("winery");
-        String locationText = getIntent().getStringExtra("location");
-        String imageUrl = getIntent().getStringExtra("image");
+        // Objektum átvétele
+        WineDto wine = (WineDto) getIntent().getSerializableExtra("wine_object");
 
-        title.setText(wine);
-        winery.setText(wineryName);
-        location.setText(locationText);
+        if (wine == null) {
+            title.setText("Hiba történt");
+            return;
+        }
 
+        // Szövegek (null-safe)
+        title.setText(wine.getWine() != null ? wine.getWine() : "Nincs név");
+        winery.setText(wine.getWinery() != null ? wine.getWinery() : "Nincs pincészet");
+        location.setText(wine.getLocation() != null ? wine.getLocation() : "Nincs helyadat");
+
+        // Kép
         Glide.with(this)
-                .load(imageUrl)
+                .load(wine.getImage())
                 .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_menu_report_image)
                 .into(image);
-    }
-
-    // 🔙 Vissza nyíl működtetése
-    @Override
-    public boolean onSupportNavigateUp() {
-        finish();
-        return true;
     }
 }

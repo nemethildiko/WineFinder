@@ -14,7 +14,11 @@ import com.example.winefinder.adapter.WineAdapter;
 import com.example.winefinder.model.WineDto;
 import com.example.winefinder.network.ApiClient;
 import com.example.winefinder.network.WineApi;
+import com.google.gson.JsonElement;
+import com.google.gson.Gson;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import retrofit2.Call;
@@ -27,7 +31,7 @@ public class WineListFragment extends Fragment {
     private WineAdapter adapter;
 
     private static final String ARG_TYPE = "wine_type";
-
+    // Fragment létrehozásakor meghívódik ez a függvény
     public static WineListFragment newInstance(String type) {
         WineListFragment f = new WineListFragment();
         Bundle b = new Bundle();
@@ -35,9 +39,7 @@ public class WineListFragment extends Fragment {
         f.setArguments(b);
         return f;
     }
-
-    public WineListFragment() {}
-
+    // Fragment létrehozásakor meghívódik ez a függvény
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -52,45 +54,54 @@ public class WineListFragment extends Fragment {
         adapter = new WineAdapter();
         recyclerView.setAdapter(adapter);
 
-        // 🔥 CLICK → open details
         adapter.setOnWineClickListener(wine -> {
             Intent intent = new Intent(requireContext(), WineDetailActivity.class);
-
-            intent.putExtra("wine", wine.getWine());
-            intent.putExtra("winery", wine.getWinery());
-            intent.putExtra("location", wine.getLocation());
-            intent.putExtra("image", wine.getImage());
-
+            intent.putExtra("wine_object", wine);
             startActivity(intent);
         });
 
-        // 🔥 Hívjuk meg a letöltést
-        String type = getArguments() != null ? getArguments().getString(ARG_TYPE, "reds") : "reds";
-        fetchWines(type);
+        String type = getArguments() != null
+                ? getArguments().getString(ARG_TYPE, "reds")
+                : "reds";
 
+        fetchWines(type);
         return view;
     }
 
-    // ⬇⬇⬇ EZ A METÓDUS NEM LEHET AZ onCreateView BELSŐ TERÜLETÉN
     private void fetchWines(String type) {
         WineApi api = ApiClient.getInstance().create(WineApi.class);
-
-        api.getWinesByType(type).enqueue(new Callback<List<WineDto>>() {
+        // Hívás az API-ból
+        api.getWinesByType(type).enqueue(new Callback<JsonElement>() {
             @Override
-            public void onResponse(Call<List<WineDto>> call, Response<List<WineDto>> response) {
+            public void onResponse(Call<JsonElement> call,
+                                   Response<JsonElement> response) {
+
                 Log.d("BOR_DEBUG", "URL: " + call.request().url());
                 Log.d("BOR_DEBUG", "CODE: " + response.code());
 
-                if (response.isSuccessful() && response.body() != null) {
-                    adapter.updateData(response.body());
-                } else {
-                    Log.e("BOR_DEBUG", "Nem sikeres válasz vagy üres body.");
+                if (!response.isSuccessful() || response.body() == null) {
+                    Log.e("BOR_DEBUG", "Üres vagy sikertelen válasz");
+                    return;
                 }
-            }
 
+                Gson gson = new Gson();
+                JsonElement root = response.body();
+                List<WineDto> wines = new ArrayList<>();
+
+                if (root.isJsonArray()) {
+                    wines = Arrays.asList(
+                            gson.fromJson(root, WineDto[].class)
+                    );
+                } else {
+                    wines.add(gson.fromJson(root, WineDto.class));
+                }
+
+                adapter.updateData(wines);
+            }
+            // Hívás sikertelen esetén
             @Override
-            public void onFailure(Call<List<WineDto>> call, Throwable t) {
-                Log.e("BOR_DEBUG", "FAIL: " + t.getMessage(), t);
+            public void onFailure(Call<JsonElement> call, Throwable t) {
+                Log.e("BOR_DEBUG", "FAIL", t);
             }
         });
     }

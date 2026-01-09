@@ -12,15 +12,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.winefinder.R;
 import com.example.winefinder.model.WineDto;
+import com.example.winefinder.data.AppDatabase;
+import com.example.winefinder.data.dao.FavoriteWineDao;
+import com.example.winefinder.data.entity.FavoriteWineEntity;
+
+
+
+
 
 import java.util.ArrayList;
 import java.util.List;
-
+// WineAdapter.java
 public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder> {
 
     private final List<WineDto> items = new ArrayList<>();
 
-    // 🔥 CLICK LISTENER interface
+
     public interface OnWineClickListener {
         void onWineClick(WineDto wine);
     }
@@ -43,24 +50,24 @@ public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder
         if (newItems != null) items.addAll(newItems);
         notifyDataSetChanged();
     }
-
+    // Methods
     @NonNull
     @Override
     public WineViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_wine, parent, false);
         return new WineViewHolder(v);
     }
-
+    // Methods
     @Override
     public void onBindViewHolder(@NonNull WineViewHolder holder, int position) {
         WineDto w = items.get(position);
 
-        // Eredeti logika (kattintás a teljes sorra a részletekhez)
+        // kattintás
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onWineClick(w);
         });
 
-        // Szövegek és fő kép betöltése
+        // szöveg
         holder.title.setText(w.getWine() != null ? w.getWine() : "");
         holder.subtitle.setText(w.getWinery() != null ? w.getWinery() : "");
 
@@ -70,50 +77,60 @@ public class WineAdapter extends RecyclerView.Adapter<WineAdapter.WineViewHolder
                 .error(android.R.drawable.ic_menu_report_image)
                 .into(holder.image);
 
-        // ⭐ KEDVENC (CSILLAG) LOGIKA ⭐
+        // room logika
 
-        // 1. Ikon beállítása: Csillag
-        if (w.isFavorite()) {
-            // Teli sárga csillag (beépített Android forrás)
+        AppDatabase db = AppDatabase.getInstance(holder.itemView.getContext());
+        FavoriteWineDao dao = db.favoriteWineDao();
+
+        boolean isFavorite = dao.isFavorite(w.getWine());
+
+        // Csillag
+        if (isFavorite) {
             holder.btnFavorite.setImageResource(android.R.drawable.star_on);
         } else {
-            // Üres/szürke csillag (beépített Android forrás)
             holder.btnFavorite.setImageResource(android.R.drawable.star_off);
         }
 
-        // 2. Kattintás a csillagra
+        // Csillag kattintás
         holder.btnFavorite.setOnClickListener(v -> {
-            // Állapot megfordítása (true -> false, vagy false -> true)
-            boolean newState = !w.isFavorite();
-            w.setFavorite(newState);
 
-            // Adapter frissítése az adott pozíción, hogy átváltson a kép
-            notifyItemChanged(position);
+            if (dao.isFavorite(w.getWine())) {
+                // törlés
+                dao.deleteByName(w.getWine());
+                holder.btnFavorite.setImageResource(android.R.drawable.star_off);
+            } else {
+                // beszúrás
+                FavoriteWineEntity entity = new FavoriteWineEntity();
+                entity.wineName = w.getWine();
+                entity.winery = w.getWinery();
+                entity.image = w.getImage();
+
+                dao.insert(entity);
+                holder.btnFavorite.setImageResource(android.R.drawable.star_on);
+            }
         });
     }
+
 
     @Override
     public int getItemCount() {
         return items.size();
     }
 
-    // ... a fájl többi része változatlan ...
 
+    // ViewHolder
     static class WineViewHolder extends RecyclerView.ViewHolder {
         ImageView image;
         TextView title, subtitle;
 
-        // 1. LÉPÉS: Add hozzá ezt a sort!
-        ImageView btnFavorite;
 
+        ImageView btnFavorite;
+        // Constructor
         public WineViewHolder(@NonNull View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.wineImage);
             title = itemView.findViewById(R.id.wineTitle);
             subtitle = itemView.findViewById(R.id.wineSubtitle);
-
-            // 2. LÉPÉS: Keresd meg a gombot az ID alapján!
-            // (Feltételezve, hogy az item_wine.xml-ben a gomb ID-ja: btnFavorite)
             btnFavorite = itemView.findViewById(R.id.btnFavorite);
         }
     }

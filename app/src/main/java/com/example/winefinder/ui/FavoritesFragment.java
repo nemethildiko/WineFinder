@@ -9,16 +9,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.winefinder.R;
 import com.example.winefinder.adapter.WineAdapter;
+import com.example.winefinder.data.AppDatabase;
+import com.example.winefinder.data.entity.FavoriteWineEntity;
 import com.example.winefinder.model.WineDto;
-import com.example.winefinder.data.WineRepository;
-
 
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class FavoritesFragment extends Fragment {
-
+    // Fragment létrehozásakor meghívódik ez a függvény
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -33,14 +32,37 @@ public class FavoritesFragment extends Fragment {
         WineAdapter adapter = new WineAdapter();
         recyclerView.setAdapter(adapter);
 
-        // ⭐ CSAK EZ AZ ÚJ LOGIKA
-        List<WineDto> allWines = WineRepository.getInstance().getAllWines();
+
+
+        AppDatabase db = AppDatabase.getInstance(requireContext());
+        List<FavoriteWineEntity> favoriteEntities =
+                db.favoriteWineDao().getAll();
+
+        // Átalakítás FavoriteWineEntity → WineDto
         List<WineDto> favorites = new ArrayList<>();
 
-        for (WineDto w : allWines) {
-            if (w.isFavorite()) {
-                favorites.add(w);
+        for (FavoriteWineEntity e : favoriteEntities) {
+            WineDto w = new WineDto();
+            w.setFavorite(true);
+
+            try {
+                java.lang.reflect.Field wineField = WineDto.class.getDeclaredField("wine");
+                java.lang.reflect.Field wineryField = WineDto.class.getDeclaredField("winery");
+                java.lang.reflect.Field imageField = WineDto.class.getDeclaredField("image");
+
+                wineField.setAccessible(true);
+                wineryField.setAccessible(true);
+                imageField.setAccessible(true);
+
+                wineField.set(w, e.wineName);
+                wineryField.set(w, e.winery);
+                imageField.set(w, e.image);
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
+
+            favorites.add(w);
         }
 
         adapter.updateData(favorites);

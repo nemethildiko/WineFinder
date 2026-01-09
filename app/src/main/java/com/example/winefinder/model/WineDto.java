@@ -1,13 +1,16 @@
 package com.example.winefinder.model;
 
-public class WineDto {
+import java.io.Serializable;
+
+public class WineDto implements Serializable {
+
     private String winery;
     private String wine;
     private String image;
     private String location;
     private Rating rating;
 
-    // ⭐ CSAK EZ AZ ÚJ
+
     private boolean favorite;
 
     public String getWinery() { return winery; }
@@ -16,7 +19,7 @@ public class WineDto {
     public String getLocation() { return location; }
     public Rating getRating() { return rating; }
 
-    // ⭐ CSAK EZ AZ ÚJ
+
     public boolean isFavorite() {
         return favorite;
     }
